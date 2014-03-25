@@ -1,3 +1,8 @@
+if exists("g:loaded_shaihulud") || v:version < 700
+    finish
+endif
+let g:loaded_shaihulud = 1
+
 if !exists("g:shaihulud_build_root_dir")
     let g:shaihulud_build_root_dir = "/"
 endif

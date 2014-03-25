@@ -1,3 +1,8 @@
+if exists("g:autoloaded_shaihulud") || v:version < 700
+    finish
+endif
+let g:autoloaded_shaihulud = 1
+
 " Split the screen {{{
 function! shaihulud#LaunchCommandInTmux(loc, cmd)
     " let l:cmd = "tmux split-window -d -l 10 \"".a:cmd." 2>&1 | tee ".tempname()."\""
