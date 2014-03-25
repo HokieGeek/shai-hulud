@@ -36,29 +36,46 @@ endfunction
 function! shaihulud#BuildCommand(path, compiler, error_file) " {{{
     let l:output_file = tempname()
     let l:cmd_script = []
-    if g:shaihulud_build_shell == "tcsh"
+
+    "" Add the preprocessor line
+    if match(g:shaihulud_build_shell, "csh") > -1
         call add(l:cmd_script, "#!/bin/tcsh -f")
     else
-        " TODO
-        " call add(l:cmd_script, "#!/bin/sh -f")
+        call add(l:cmd_script, "#!/bin/sh -f")
     endif
+
+    "" Add any user environment commands
     if exists("b:shaihulud_build_env")
         for env in b:shaihulud_build_env
             call add(l:cmd_script, env)
         endfor
     endif
+
+    "" Cd to that location
     call add(l:cmd_script, "cd ".a:path)
-    if g:shaihulud_build_shell == "tcsh"
-        if a:compiler == "ant"
-            call add(l:cmd_script, a:compiler." |& tee ".l:output_file)
-        else
+
+    "" Build the execution line for the compiler
+    let l:compiler_line = a:compiler
+    if a:compiler != "ant"
+        " TODO: I don't think /proc/cpuinfo is portable
+        if match(g:shaihulud_build_shell, "csh") > -1
             call add(l:cmd_script, "set num_processors=`grep -c \"processor\" /proc/cpuinfo`")
             call add(l:cmd_script, "set num_processors=`expr $num_processors + 1`")
-            call add(l:cmd_script, a:compiler." -j${num_processors} |& tee ".l:output_file)
+        else
+            call add(l:cmd_script, "num_processors=`expr $(grep -c \"processor\" /proc/cpuinfo) + 1`")
         endif
-    else
-        "TODO
+
+        let l:compiler_line .= " -j${num_processors} "
     endif
+    if match(g:shaihulud_build_shell, "csh") > -1
+        let l:pipe = "|&"
+    else
+        let l:pipe = "2>&1 |"
+    endif
+    let l:compiler_line .= " ".l:pipe." tee ".l:output_file
+    call add(l:cmd_script, l:compiler_line)
+
+    "" If a script was generated, add the line to retrieve the errors and write the file
     if len(l:cmd_script) > 0
         call add(l:cmd_script, "grep -i error: ".l:output_file." > ".a:error_file)
         let l:fname = tempname()
