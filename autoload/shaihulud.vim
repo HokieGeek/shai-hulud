@@ -77,7 +77,7 @@ function! shaihulud#BuildCommand(path, compiler, error_file) " {{{
 
     "" If a script was generated, add the line to retrieve the errors and write the file
     if len(l:cmd_script) > 0
-        call add(l:cmd_script, "grep -i error: ".l:output_file." > ".a:error_file)
+        call add(l:cmd_script, "grep -i ': error: ' ".l:output_file." > ".a:error_file)
         let l:fname = tempname()
         call writefile(l:cmd_script, l:fname)
         silent execute "!chmod +x ".l:fname
@@ -116,11 +116,11 @@ function! shaihulud#Build(...)
         let l:build_info = shaihulud#GetBuildFramework(expand("%:p:h"))
     endif
     if len(l:build_info) > 0
-        let b:build_error_file = tempname()
-        let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1], b:build_error_file)
+        let b:shaihulud_build_error_file = tempname()
+        let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1], b:shaihulud_build_error_file)
         call shaihulud#LaunchCommand(l:build_info[0], l:cmd)
         execute "cd ".l:build_info[0]
-        command! -buffer BuildErrors :silent execute "cfile  ".b:build_error_file<bar>cwindow
+        command! -buffer BuildErrors :silent execute "cfile  ".b:shaihulud_build_error_file<bar>cwindow
         " FIXME: so.. how do I know that this is done so I can load the file?
     else
         echomsg "No clue what to build with"
