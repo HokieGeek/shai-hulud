@@ -1,7 +1,7 @@
 " Split the screen {{{
 function! shaihulud#LaunchCommandInTmux(loc, cmd)
     " let l:cmd = "tmux split-window -d -l 10 \"".a:cmd." 2>&1 | tee ".tempname()."\""
-    let l:cmd = "tmux split-window -d -l ".g:shaihulud_split_window_size." \"".a:cmd."\""
+    let l:cmd = "tmux split-window -d -l ".g:shaihulud_split_window_size." \"cd ".a:loc.";".a:cmd."\""
     " echomsg l:cmd
     call system(l:cmd)
 endfunction
@@ -15,7 +15,7 @@ function! shaihulud#LaunchCommandInScreen(loc, cmd)
     " let l:cmd .= " && ".l:screen_cmd." chdir ".expand("%:p:h")
     let l:cmd .= " && ".l:screen_cmd." screen"
     " let l:cmd .= " && ".l:screen_cmd." \"".a:cmd." 2>&1 | tee ".tempname()."\""
-    let l:cmd .= " && ".l:screen_cmd." \"".a:cmd."\""
+    let l:cmd .= " && ".l:screen_cmd." \"cd ".a:loc.";".a:cmd."\""
     call system(l:cmd)
 endfunction
 
@@ -97,6 +97,8 @@ function! shaihulud#GetBuildFramework(path) " {{{
             return [l:path, "ant"]
         elseif filereadable(l:path."/makefile")
             return [l:path, "make"]
+        elseif filereadable(l:path."/rakefile")
+            return [l:path, "rake"]
         elseif filereadable(l:path."/SConstruct")
             return [l:path, "scons"]
         else
@@ -109,7 +111,7 @@ endfunction
 
 function! shaihulud#Build(...)
     if a:0 > 0
-        let l:build_info = shaihulud#GetBuildFramework(a:1) " TODO: a:000?
+        let l:build_info = shaihulud#GetBuildFramework(join(a:000, ' '))
     else
         let l:build_info = shaihulud#GetBuildFramework(expand("%:p:h"))
     endif
