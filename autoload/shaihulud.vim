@@ -4,17 +4,27 @@ endif
 let g:autoloaded_shaihulud = 1
 
 " Execute command {{{
-function! shaihulud#LaunchCommandInTmux(loc, cmd)
-    " let l:cmd = "tmux new-window -n ".a:title." -d \"cd ".a:loc.";".a:cmd."\""
+function! shaihulud#LaunchCommandInTmuxWindow(loc, cmd)
+    let l:title = fnamemodify(split(a:cmd)[0], ":t")
+    let l:cmd = "tmux new-window -d -n 'Running ".l:title." ...' \"cd ".a:loc.";".a:cmd."\""
+    call system(l:cmd)
+endfunction
+function! shaihulud#LaunchCommandInTmuxSplit(loc, cmd)
 
     let l:cmd = "tmux split-window -d -l ".g:shaihulud_split_window_size." \"cd ".a:loc.";".a:cmd."\""
     call system(l:cmd)
 endfunction
 
-function! shaihulud#LaunchCommandInScreen(loc, cmd)
-    let l:screen_cmd = "screen -dr ".expand("%STY")." -X"
+function! shaihulud#LaunchCommandInScreenWindow(loc, cmd)
+    let l:title = fnamemodify(split(a:cmd)[0], ":t")
 
-    " let l:cmd = l:screen_cmd." screen -t ".a:title." \"cd ".a:loc.";".a:cmd."\""
+    let l:screen_cmd = "screen -dr ".expand("%STY")." -X"
+    let l:cmd = l:screen_cmd." screen -fn -t 'Running ".l:title." ...' \"cd ".a:loc.";".a:cmd."\""
+    let l:cmd .= " && ".l:screen_cmd." other"
+    call system(l:cmd)
+endfunction
+function! shaihulud#LaunchCommandInScreenSplit(loc, cmd)
+    let l:screen_cmd = "screen -dr ".expand("%STY")." -X"
 
     let l:cmd = l:screen_cmd." split"
     let l:cmd .= " && ".l:screen_cmd." focus"
@@ -25,18 +35,30 @@ function! shaihulud#LaunchCommandInScreen(loc, cmd)
     call system(l:cmd)
 endfunction
 
-function! shaihulud#LaunchCommand(loc, cmd)
+function! shaihulud#LaunchCommandHeadless(loc, cmd)
+    call system("cd ".a:loc."; ".a:cmd)
+endfunction
+
+function! shaihulud#LaunchCommand(loc, cmd, bg)
     if exists("$TMUX")
-        call shaihulud#LaunchCommandInTmux(a:loc, a:cmd)
+        if a:bg
+            call shaihulud#LaunchCommandInTmuxWindow(a:loc, a:cmd)
+        else
+            call shaihulud#LaunchCommandInTmuxSplit(a:loc, a:cmd)
+        endif
     elseif exists("$TERM") && expand("$TERM") == "screen"
-        call shaihulud#LaunchCommandInScreen(a:loc, a:cmd)
+        if a:bg
+            call shaihulud#LaunchCommandInScreenWindow(a:loc, a:cmd)
+        else
+            call shaihulud#LaunchCommandInScreenSplit(a:loc, a:cmd)
+        endif
     else
-        echomsg "Did not find neither a tmux nor a screen session"
+        call shaihulud#LaunchCommandHeadless(a:loc, a:cmd)
     endif
 endfunction
 
 function! shaihulud#LaunchCommandHere(cmd)
-    call shaihulud#LaunchCommand(getcwd(), a:cmd)
+    call shaihulud#LaunchCommand(getcwd(), a:cmd, 0)
 endfunction
 " }}}
 function! shaihulud#BuildCommand(path, compiler) " {{{
@@ -138,9 +160,11 @@ function! shaihulud#Build(...)
         let b:shaihulud_build_error_file = tempname()
         let b:shaihulud_build_warning_file = tempname()
         let b:shaihulud_build_completed = tempname()
+
         execute "autocmd VimResized <buffer> call shaihulud#CheckBuildCompleted('".l:build_info[0]."')"
+
         let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1])
-        call shaihulud#LaunchCommand(l:build_info[0], l:cmd)
+        call shaihulud#LaunchCommand(l:build_info[0], l:cmd, 0)
     else
         echomsg "No clue what to build with"
     endif
