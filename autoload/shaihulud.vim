@@ -5,21 +5,22 @@ let g:autoloaded_shaihulud = 1
 
 " Execute command {{{
 function! shaihulud#LaunchCommandInTmux(loc, cmd)
-    " let l:cmd = "tmux split-window -d -l 10 \"".a:cmd." 2>&1 | tee ".tempname()."\""
+    " let l:cmd = "tmux new-window -n ".a:title." -d \"cd ".a:loc.";".a:cmd."\""
+
     let l:cmd = "tmux split-window -d -l ".g:shaihulud_split_window_size." \"cd ".a:loc.";".a:cmd."\""
-    " echomsg l:cmd
     call system(l:cmd)
 endfunction
 
 function! shaihulud#LaunchCommandInScreen(loc, cmd)
     let l:screen_cmd = "screen -dr ".expand("%STY")." -X"
 
+    " let l:cmd = l:screen_cmd." screen -t ".a:title." \"cd ".a:loc.";".a:cmd."\""
+
     let l:cmd = l:screen_cmd." split"
     let l:cmd .= " && ".l:screen_cmd." focus"
     let l:cmd .= " && ".l:screen_cmd." resize ".g:shaihulud_split_window_size
     " let l:cmd .= " && ".l:screen_cmd." chdir ".expand("%:p:h")
     let l:cmd .= " && ".l:screen_cmd." screen"
-    " let l:cmd .= " && ".l:screen_cmd." \"".a:cmd." 2>&1 | tee ".tempname()."\""
     let l:cmd .= " && ".l:screen_cmd." \"cd ".a:loc.";".a:cmd."\""
     call system(l:cmd)
 endfunction
