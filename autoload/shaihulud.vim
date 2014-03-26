@@ -138,9 +138,9 @@ function! shaihulud#Build(...)
         let b:shaihulud_build_error_file = tempname()
         let b:shaihulud_build_warning_file = tempname()
         let b:shaihulud_build_completed = tempname()
+        execute "autocmd VimResized <buffer> call shaihulud#CheckBuildCompleted('".l:build_info[0]."')"
         let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1])
         call shaihulud#LaunchCommand(l:build_info[0], l:cmd)
-        execute "autocmd VimResized <buffer> call shaihulud#CheckBuildCompleted('".l:build_info[0]."')"
     else
         echomsg "No clue what to build with"
     endif
