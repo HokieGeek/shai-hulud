@@ -3,70 +3,6 @@ if exists("g:autoloaded_shaihulud") || v:version < 700
 endif
 let g:autoloaded_shaihulud = 1
 
-" Execute command {{{
-function! shaihulud#LaunchCommandInTmuxWindow(loc, cmd)
-    let l:title = fnamemodify(split(a:cmd)[0], ":t")
-    let l:cmd = "tmux new-window -d -n 'Running ".l:title." ...' \"cd ".a:loc.";"
-    let l:cmd .= a:cmd." | tee ".b:shaihulud_command_log."\""
-    call system(l:cmd)
-endfunction
-function! shaihulud#LaunchCommandInTmuxSplit(loc, cmd)
-    let l:cmd = "tmux split-window -d -l ".g:shaihulud_split_window_size." \"cd ".a:loc.";"
-    let l:cmd .= a:cmd." | tee ".b:shaihulud_command_log."\""
-    call system(l:cmd)
-endfunction
-
-function! shaihulud#LaunchCommandInScreenWindow(loc, cmd)
-    let l:title = fnamemodify(split(a:cmd)[0], ":t")
-
-    let l:screen_cmd = "screen -dr ".expand("%STY")." -X"
-    let l:cmd = l:screen_cmd." screen -fn -t 'Running ".l:title." ...' \"cd ".a:loc.";"
-    let l:cmd .= a:cmd." | tee ".b:shaihulud_command_log."\""
-    let l:cmd .= " && ".l:screen_cmd." other"
-    call system(l:cmd)
-endfunction
-function! shaihulud#LaunchCommandInScreenSplit(loc, cmd)
-    let l:screen_cmd = "screen -dr ".expand("%STY")." -X"
-
-    let l:cmd = l:screen_cmd." split"
-    let l:cmd .= " && ".l:screen_cmd." focus"
-    let l:cmd .= " && ".l:screen_cmd." resize ".g:shaihulud_split_window_size
-    " let l:cmd .= " && ".l:screen_cmd." chdir ".expand("%:p:h")
-    let l:cmd .= " && ".l:screen_cmd." screen"
-    let l:cmd .= " && ".l:screen_cmd." \"cd ".a:loc.";"
-    let l:cmd .= a:cmd." | tee ".b:shaihulud_command_log."\""
-    call system(l:cmd)
-endfunction
-
-function! shaihulud#LaunchCommandHeadless(loc, cmd)
-    call system("cd ".a:loc."; ".a:cmd." | tee ".b:shaihulud_command_log."\"")
-endfunction
-
-function! shaihulud#LaunchCommand(loc, cmd, bg)
-    let b:shaihulud_command_log = tempname()
-    execute " command! -buffer Log :new | r ".b:shaihulud_command_log." | 0d_"
-
-    if exists("$TMUX")
-        if a:bg
-            call shaihulud#LaunchCommandInTmuxWindow(a:loc, a:cmd)
-        else
-            call shaihulud#LaunchCommandInTmuxSplit(a:loc, a:cmd)
-        endif
-    elseif exists("$TERM") && expand("$TERM") == "screen"
-        if a:bg
-            call shaihulud#LaunchCommandInScreenWindow(a:loc, a:cmd)
-        else
-            call shaihulud#LaunchCommandInScreenSplit(a:loc, a:cmd)
-        endif
-    else
-        call shaihulud#LaunchCommandHeadless(a:loc, a:cmd)
-    endif
-endfunction
-
-function! shaihulud#LaunchCommandHere(cmd, bg)
-    call shaihulud#LaunchCommand(getcwd(), a:cmd, a:bg)
-endfunction
-" }}}
 function! shaihulud#BuildCommand(path, compiler) " {{{
     let l:output_file = tempname()
     let l:cmd_script = []
@@ -157,11 +93,29 @@ function! shaihulud#CheckBuildCompleted(path) " {{{
 endfunction
 " }}}
 function! shaihulud#Build(...)
+    "" Determine the path
     if a:0 > 0
-        let l:build_info = shaihulud#GetBuildFramework(join(a:000, ' '))
+        let l:path = fnamemodify(join(a:000, ' '), ":p")
     else
-        let l:build_info = shaihulud#GetBuildFramework(expand("%:p:h"))
+        let l:path = expand("%:p:h")
     endif
+
+    "" Retrieve build framework info
+    let l:build_info = []
+    if exists("g:shaihulud_build_info_cache")
+        if has_key(g:shaihulud_build_info_cache, l:path)
+            let l:build_info = g:shaihulud_build_info_cache[l:path]
+        endif
+    else
+        let g:shaihulud_build_info_cache = {}
+    endif
+
+    if len(l:build_info) == 0
+        let l:build_info = shaihulud#GetBuildFramework(l:path)
+        let g:shaihulud_build_info_cache[l:path] = l:build_info
+    endif
+
+    "" If we were able to determine build info, build the command and execute it
     if len(l:build_info) > 0
         let b:shaihulud_build_error_file = tempname()
         let b:shaihulud_build_warning_file = tempname()
@@ -170,7 +124,8 @@ function! shaihulud#Build(...)
         execute "autocmd VimResized <buffer> call shaihulud#CheckBuildCompleted('".l:build_info[0]."')"
 
         let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1])
-        call shaihulud#LaunchCommand(l:build_info[0], l:cmd, 0)
+        " call splitter#LaunchCommand(l:build_info[0], l:cmd, 0)
+        execute "RunIn ".l:build_info[0]." ".l:cmd
     else
         echomsg "No clue what to build with"
     endif

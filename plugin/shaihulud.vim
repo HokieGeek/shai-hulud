@@ -9,11 +9,7 @@ endif
 if !exists("g:shaihulud_build_shell")
     let g:shaihulud_build_shell = "sh"
 endif
-if !exists("g:shaihulud_split_window_size")
-    let g:shaihulud_split_window_size = 10
-endif
 
 command! -nargs=* Build :call shaihulud#Build(<f-args>)
-command! -bang -nargs=* Run :call shaihulud#LaunchCommandHere(<q-args>, <bang>0)
 
 " vim: set foldmethod=marker formatoptions-=tc:
