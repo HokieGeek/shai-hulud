@@ -14,6 +14,6 @@ if !exists("g:shaihulud_split_window_size")
 endif
 
 command! -nargs=* Build :call shaihulud#Build(<f-args>)
-command! -nargs=* Run :call shaihulud#LaunchCommandHere(<f-args>)
+command! -bang -nargs=* Run :call shaihulud#LaunchCommandHere(<q-args>, <bang>0)
 
 " vim: set foldmethod=marker formatoptions-=tc:

@@ -6,12 +6,13 @@ let g:autoloaded_shaihulud = 1
 " Execute command {{{
 function! shaihulud#LaunchCommandInTmuxWindow(loc, cmd)
     let l:title = fnamemodify(split(a:cmd)[0], ":t")
-    let l:cmd = "tmux new-window -d -n 'Running ".l:title." ...' \"cd ".a:loc.";".a:cmd."\""
+    let l:cmd = "tmux new-window -d -n 'Running ".l:title." ...' \"cd ".a:loc.";"
+    let l:cmd .= a:cmd." | tee ".b:shaihulud_command_log."\""
     call system(l:cmd)
 endfunction
 function! shaihulud#LaunchCommandInTmuxSplit(loc, cmd)
-
-    let l:cmd = "tmux split-window -d -l ".g:shaihulud_split_window_size." \"cd ".a:loc.";".a:cmd."\""
+    let l:cmd = "tmux split-window -d -l ".g:shaihulud_split_window_size." \"cd ".a:loc.";"
+    let l:cmd .= a:cmd." | tee ".b:shaihulud_command_log."\""
     call system(l:cmd)
 endfunction
 
@@ -19,7 +20,8 @@ function! shaihulud#LaunchCommandInScreenWindow(loc, cmd)
     let l:title = fnamemodify(split(a:cmd)[0], ":t")
 
     let l:screen_cmd = "screen -dr ".expand("%STY")." -X"
-    let l:cmd = l:screen_cmd." screen -fn -t 'Running ".l:title." ...' \"cd ".a:loc.";".a:cmd."\""
+    let l:cmd = l:screen_cmd." screen -fn -t 'Running ".l:title." ...' \"cd ".a:loc.";"
+    let l:cmd .= a:cmd." | tee ".b:shaihulud_command_log."\""
     let l:cmd .= " && ".l:screen_cmd." other"
     call system(l:cmd)
 endfunction
@@ -31,15 +33,19 @@ function! shaihulud#LaunchCommandInScreenSplit(loc, cmd)
     let l:cmd .= " && ".l:screen_cmd." resize ".g:shaihulud_split_window_size
     " let l:cmd .= " && ".l:screen_cmd." chdir ".expand("%:p:h")
     let l:cmd .= " && ".l:screen_cmd." screen"
-    let l:cmd .= " && ".l:screen_cmd." \"cd ".a:loc.";".a:cmd."\""
+    let l:cmd .= " && ".l:screen_cmd." \"cd ".a:loc.";"
+    let l:cmd .= a:cmd." | tee ".b:shaihulud_command_log."\""
     call system(l:cmd)
 endfunction
 
 function! shaihulud#LaunchCommandHeadless(loc, cmd)
-    call system("cd ".a:loc."; ".a:cmd)
+    call system("cd ".a:loc."; ".a:cmd." | tee ".b:shaihulud_command_log."\"")
 endfunction
 
 function! shaihulud#LaunchCommand(loc, cmd, bg)
+    let b:shaihulud_command_log = tempname()
+    execute " command! -buffer Log :new | r ".b:shaihulud_command_log." | 0d_"
+
     if exists("$TMUX")
         if a:bg
             call shaihulud#LaunchCommandInTmuxWindow(a:loc, a:cmd)
@@ -57,8 +63,8 @@ function! shaihulud#LaunchCommand(loc, cmd, bg)
     endif
 endfunction
 
-function! shaihulud#LaunchCommandHere(cmd)
-    call shaihulud#LaunchCommand(getcwd(), a:cmd, 0)
+function! shaihulud#LaunchCommandHere(cmd, bg)
+    call shaihulud#LaunchCommand(getcwd(), a:cmd, a:bg)
 endfunction
 " }}}
 function! shaihulud#BuildCommand(path, compiler) " {{{
