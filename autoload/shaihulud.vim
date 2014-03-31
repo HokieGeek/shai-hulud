@@ -3,31 +3,24 @@ if exists("g:autoloaded_shaihulud") || v:version < 700
 endif
 let g:autoloaded_shaihulud = 1
 
-function! shaihulud#BuildCommand(path, compiler) " {{{
+function! shaihulud#BuildCommand(path, compiler, compiler_args) " {{{
     let l:output_file = tempname()
     let l:cmd_script = []
 
     "" Add the preprocessor line
-    if match(g:shaihulud_build_shell, "csh") > -1
-        call add(l:cmd_script, "#!/bin/tcsh -f")
-    else
-        call add(l:cmd_script, "#!/bin/sh -f")
-    endif
+    call add(l:cmd_script, "#!/bin/".g:shaihulud_build_shell." -f")
 
     "" Add any user environment commands
     if exists("b:shaihulud_build_env")
-        for env in b:shaihulud_build_env
-            call add(l:cmd_script, env)
-        endfor
+        l:cmd_script += b:shaihulud_build_env
     endif
 
     "" Cd to that location
     call add(l:cmd_script, "cd ".a:path)
 
     "" Build the execution line for the compiler
-    let l:compiler_line = a:compiler
+    let l:compiler_line = a:compiler." ".a:compiler_args
     if a:compiler != "ant"
-        " TODO: I don't think /proc/cpuinfo is portable
         if match(g:shaihulud_build_shell, "csh") > -1
             call add(l:cmd_script, "set num_processors=`grep -c \"processor\" /proc/cpuinfo`")
             call add(l:cmd_script, "set num_processors=`expr $num_processors + 1`")
@@ -130,7 +123,7 @@ function! shaihulud#Build(...)
 
         execute "autocmd VimResized <buffer> call shaihulud#CheckBuildCompleted('".l:build_info[0]."')"
 
-        let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1]." ".l:build_args)
+        let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1], l:build_args)
         execute "RunIn ".l:build_info[0]." ".l:cmd
     else
         echomsg "No clue what to build with"
