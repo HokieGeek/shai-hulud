@@ -94,8 +94,17 @@ endfunction
 " }}}
 function! shaihulud#Build(...)
     "" Determine the path
+    let l:build_args = ""
     if a:0 > 0
-        let l:path = fnamemodify(join(a:000, ' '), ":p")
+        let l:path = fnamemodify(a:1, ":p")
+        if !isdirectory(l:path)
+            let l:path = expand("%:p:h")
+            let l:build_args = a:1." "
+        endif
+
+        if (a:0 > 1)
+            let l:build_args .= join(a:000[1:], ' ')
+        endif
     else
         let l:path = expand("%:p:h")
     endif
@@ -123,7 +132,7 @@ function! shaihulud#Build(...)
 
         execute "autocmd VimResized <buffer> call shaihulud#CheckBuildCompleted('".l:build_info[0]."')"
 
-        let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1])
+        let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1]." ".l:build_args)
         " call splitter#LaunchCommand(l:build_info[0], l:cmd, 0)
         execute "RunIn ".l:build_info[0]." ".l:cmd
     else
