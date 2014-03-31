@@ -69,8 +69,6 @@ function! shaihulud#GetBuildFramework(path) " {{{
             return [l:path, "ant"]
         elseif filereadable(l:path."/makefile") || filereadable(l:path."/Makefile")
             return [l:path, "make"]
-        elseif filereadable(l:path."/rakefile")
-            return [l:path, "rake"]
         elseif filereadable(l:path."/SConstruct")
             return [l:path, "scons"]
         else
@@ -133,7 +131,6 @@ function! shaihulud#Build(...)
         execute "autocmd VimResized <buffer> call shaihulud#CheckBuildCompleted('".l:build_info[0]."')"
 
         let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1]." ".l:build_args)
-        " call splitter#LaunchCommand(l:build_info[0], l:cmd, 0)
         execute "RunIn ".l:build_info[0]." ".l:cmd
     else
         echomsg "No clue what to build with"
