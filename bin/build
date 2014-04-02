@@ -1,0 +1,4 @@
+#!/bin/sh
+
+test $# -le 0 && build_path="`pwd`" || build_path="$@"
+exec vim -c "cd ${build_path}" -c "Ex" -c "Build"
