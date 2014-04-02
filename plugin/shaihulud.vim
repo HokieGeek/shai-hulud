@@ -10,6 +10,8 @@ if !exists("g:shaihulud_build_shell")
     let g:shaihulud_build_shell = "sh"
 endif
 
+let g:shaihulud_build_completion_listeners = []
+
 command! -nargs=* Build :call shaihulud#Build(<f-args>)
 
 " vim: set foldmethod=marker formatoptions-=tc:

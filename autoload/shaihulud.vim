@@ -12,7 +12,7 @@ function! shaihulud#BuildCommand(path, compiler, compiler_args) " {{{
 
     "" Add any user environment commands
     if exists("b:shaihulud_build_env")
-        l:cmd_script += b:shaihulud_build_env
+        let l:cmd_script += b:shaihulud_build_env
     endif
 
     "" Cd to that location
@@ -77,6 +77,10 @@ function! shaihulud#CheckBuildCompleted(path) " {{{
         command! -buffer BuildErrors :silent execute 'cfile  '.b:shaihulud_build_error_file<bar>cwindow
         command! -buffer BuildWarnings :silent execute 'cfile  '.b:shaihulud_build_warnings_file<bar>cwindow
         execute "BuildErrors"
+
+        for l in g:shaihulud_build_completion_listeners
+            call function(l)()
+        endfor
 
         unlet! b:shaihulud_build_completed
         autocmd! VimResized <buffer>
