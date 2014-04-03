@@ -11,6 +11,7 @@ if !exists("g:shaihulud_build_shell")
 endif
 
 let g:shaihulud_build_completion_listeners = []
+let g:shaihulud_errorformat_ant=escape('%A\ %#[javac]\ %f:%l:\ %m,%-Z\ %#[javac]\ %p^,%-C%.%#', ' \')
 
 command! -nargs=* Build :call shaihulud#Build(<f-args>)
 

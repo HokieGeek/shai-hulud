@@ -71,9 +71,12 @@ function! shaihulud#GetBuildFramework(path) " {{{
     return []
 endfunction
 " }}}
-function! shaihulud#CheckBuildCompleted(path) " {{{
+function! shaihulud#CheckBuildCompleted(path, compiler) " {{{
     if exists("b:shaihulud_build_completed") && filereadable(expand(b:shaihulud_build_completed))
         execute "cd ".a:path
+        if a:compiler ==? "ant"
+            silent! execute "set errorformat=".g:shaihulud_errorformat_ant
+        endif
         command! -buffer BuildErrors :silent execute 'cfile  '.b:shaihulud_build_error_file<bar>cwindow
         command! -buffer BuildWarnings :silent execute 'cfile  '.b:shaihulud_build_warnings_file<bar>cwindow
         execute "BuildErrors"
@@ -125,7 +128,8 @@ function! shaihulud#Build(...)
         let b:shaihulud_build_warning_file = tempname()
         let b:shaihulud_build_completed = tempname()
 
-        execute "autocmd VimResized <buffer> call shaihulud#CheckBuildCompleted('".l:build_info[0]."')"
+        " execute "autocmd VimResized <buffer> call shaihulud#CheckBuildCompleted('".l:build_info[0]."')"
+        execute "autocmd VimResized <buffer> call shaihulud#CheckBuildCompleted('".l:build_info[0]."', '".l:build_info[1]."')"
 
         let l:cmd = shaihulud#BuildCommand(l:build_info[0], l:build_info[1], l:build_args)
         execute "RunIn ".l:build_info[0]." ".l:cmd
