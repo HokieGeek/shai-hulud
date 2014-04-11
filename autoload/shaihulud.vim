@@ -81,9 +81,12 @@ function! shaihulud#CheckBuildCompleted(path, compiler) " {{{
         command! -buffer BuildWarnings :silent execute 'cfile  '.b:shaihulud_build_warnings_file<bar>cwindow
         execute "BuildErrors"
 
-        for l in g:shaihulud_build_completion_listeners
-            call function(l)()
-        endfor
+        if exists("g:shaihulud_build_completion_listeners") && len("g:shaihulud_build_completion_listeners") > 0
+            for l in g:shaihulud_build_completion_listeners
+                let Listener = function(l)
+                call Listener()
+            endfor
+        endif
 
         unlet! b:shaihulud_build_completed
         autocmd! VimResized <buffer>
