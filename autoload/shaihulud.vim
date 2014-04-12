@@ -20,7 +20,7 @@ function! shaihulud#BuildCommand(path, compiler, compiler_args) " {{{
 
     "" Build the execution line for the compiler
     let l:compiler_line = a:compiler." ".a:compiler_args
-    if a:compiler != "ant"
+    if a:compiler !=? "ant"
         if match(g:shaihulud_build_shell, "csh") > -1
             call add(l:cmd_script, "set num_processors=`grep -c \"processor\" /proc/cpuinfo`")
             call add(l:cmd_script, "set num_processors=`expr $num_processors + 1`")
