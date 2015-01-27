@@ -1,31 +1,31 @@
 *shai-hulud.txt* Commands to build code with various build frameworks
 
 *shaihulud* *shai-hulud* *shai-hulud.vim*
-                                          Shai-Hulud by Andrés Pérez
- Description                                        |shaihulud-description|
+                        Shai-Hulud by Andrés Pérez
+ Description                                     |shaihulud-description|
  Commands                                        |shaihulud-commands|
- Configuration                                     |shaihulud-configuration|
+ Configuration                                   |shaihulud-configuration|
 
 =======================================================================
-DESCRIPTION                                                              *shaihulud-description*
+DESCRIPTION                                     *shaihulud-description*
 
 =======================================================================
-COMMANDS                                                                  *shaihulud-commands*
-                                                                        *:Build* *shaihulud-build*
+COMMANDS                                        *shaihulud-commands*
 
-
+                                                *:Build* *shaihulud-build*
 :Build
 
 =======================================================================
-CONFIGURATION                                                             *shaihulud-configuration*
+CONFIGURATION                                   *shaihulud-configuration*
 
-                                                      *g:shaihulud_build_root_dir* *shaihulud_build_root_dir*
+                            *g:shaihulud_build_root_dir* *shaihulud_build_root_dir*
 shaihulud_build_root_dir
-                                                      *g:shaihulud_build_shell* *shaihulud_build_shell*
+                            *g:shaihulud_build_shell* *shaihulud_build_shell*
 shaihulud_build_shell
-             *g:shaihulud_build_completion_listeners* *shaihulud_build_completion_listeners*
+                            *g:shaihulud_build_completion_listeners*
+                            *shaihulud_build_completion_listeners*
 shaihulud_build_completion_listeners
-                                                      *g:shaihulud_build_env* *shaihulud_build_env*
+                            *g:shaihulud_build_env* *shaihulud_build_env*
 shaihulud_build_env
 =======================================================================
 Maintainer: andres.f.perez@gmail.com 
