@@ -64,6 +64,8 @@ function! shaihulud#GetBuildFramework(path) " {{{
             return [l:path, "make"]
         elseif filereadable(l:path."/SConstruct")
             return [l:path, "scons"]
+        elseif &filetype == "go"
+            return [l:path, "go build"]
         else
             let l:path = fnamemodify(l:path, ":h")
         endif
