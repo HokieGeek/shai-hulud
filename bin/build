@@ -22,4 +22,4 @@ exec vim -c "source ${func}" \
          -c "set nonumber norelativenumber noruler laststatus=0" \
          -c "set buftype=nofile bufhidden=wipe nobuflisted noswapfile nomodifiable" \
          -c "Build" \
-         -c "call system('tmux resize-pane -y 2')"
+         -c "call system('tmux resize-pane -U 1000; tmux resize-pane -D 1')"
